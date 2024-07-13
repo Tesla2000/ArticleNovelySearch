@@ -3,6 +3,7 @@ from __future__ import annotations
 from io import BytesIO
 from typing import List
 
+import arxiv
 import httpx
 from phi.document.base import Document
 from phi.document.reader.pdf import PDFUrlReader
@@ -40,3 +41,11 @@ class PDFAbsractReader(PDFUrlReader):
             .partition("1. Introduction")[0],
         )
         return [document]
+
+
+def from_arxiv(arxiv_result: arxiv.Result) -> Document:
+    return Document(
+        name=arxiv_result.title,
+        id=arxiv_result.entry_id,
+        content=arxiv_result.summary,
+    )
