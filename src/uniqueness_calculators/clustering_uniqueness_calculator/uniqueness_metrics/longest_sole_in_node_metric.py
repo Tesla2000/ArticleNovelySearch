@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.uniqueness_metrics.uniqueness_metric import UniquenessMetric
-from src.uniqueness_metrics.uniqueness_metric_name import UniquenessMetricName
+from .uniqueness_metric import UniquenessMetric
+from .uniqueness_metric_name import ClusteringUniquenessMetricName
 
 
 class LongestSoleInNodeMetric(UniquenessMetric):
     """Very good for finding niche subjects in a small number"""
 
-    type: UniquenessMetricName = UniquenessMetricName.SOLE_IN_NODE
+    type: ClusteringUniquenessMetricName = (
+        ClusteringUniquenessMetricName.SOLE_IN_NODE
+    )
 
     def __init__(self, neighbours: int = 1):
         self.neighbours = neighbours

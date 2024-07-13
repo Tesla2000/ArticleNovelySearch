@@ -4,14 +4,16 @@ import sys
 
 import numpy as np
 
-from src.uniqueness_metrics.uniqueness_metric import UniquenessMetric
-from src.uniqueness_metrics.uniqueness_metric_name import UniquenessMetricName
+from .uniqueness_metric import ClusteringUniquenessMetric
+from .uniqueness_metric_name import ClusteringUniquenessMetricName
 
 
-class SumOfConnectionsMetric(UniquenessMetric):
+class SumOfConnectionsMetric(ClusteringUniquenessMetric):
     """Very good for finding most common subjects"""
 
-    type: UniquenessMetricName = UniquenessMetricName.SUM_OF_CONNECTIONS
+    type: ClusteringUniquenessMetricName = (
+        ClusteringUniquenessMetricName.SUM_OF_CONNECTIONS
+    )
 
     def __init__(self, connections_cap=sys.maxsize):
         self.connections_cap = connections_cap

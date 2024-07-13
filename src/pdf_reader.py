@@ -43,9 +43,18 @@ class PDFAbsractReader(PDFUrlReader):
         return [document]
 
 
-def from_arxiv(arxiv_result: arxiv.Result) -> Document:
+def content_from_arxiv(arxiv_result: arxiv.Result) -> Document:
     return Document(
         name=arxiv_result.title,
         id=arxiv_result.entry_id,
         content=arxiv_result.summary,
+    )
+
+
+def title_from_arxiv(arxiv_result: arxiv.Result) -> Document:
+    return Document(
+        name=arxiv_result.title,
+        id=arxiv_result.entry_id,
+        content=arxiv_result.title,
+        meta_data={"n_citations": arxiv_result},
     )

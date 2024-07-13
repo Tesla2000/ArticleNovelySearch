@@ -8,13 +8,16 @@ from numpy import save
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics.pairwise import cosine_similarity
 
+from ..uniqueness_calculator import UniquenessCalculator
+from .uniqueness_metrics.uniqueness_metric import UniquenessMetric
+from .uniqueness_metrics.uniqueness_metric_name import (
+    ClusteringUniquenessMetricName,
+)
 from src.Config import Config
-from src.uniqueness_metrics.uniqueness_metric import UniquenessMetric
-from src.uniqueness_metrics.uniqueness_metric_name import UniquenessMetricName
 
 
-class UniquenessCalculator:
-    def _get_similarity(self, X: np.ndarray) -> np.ndarray:
+class ClusteringUniquenessCalculator(UniquenessCalculator):
+    def _get_cosine_similarity(self, X: np.ndarray) -> np.ndarray:
         X.flags.writeable = False
         hash_value = hashlib.sha1(X.data.tobytes()).hexdigest()
         path = Config.cosine_caches.joinpath(hash_value).with_suffix(".npy")
@@ -25,7 +28,7 @@ class UniquenessCalculator:
         return pairwise_cosine
 
     def _cluster(self, X: np.ndarray) -> np.ndarray:
-        pairwise_cosine = self._get_similarity(X)
+        pairwise_cosine = self._get_cosine_similarity(X)
         return np.array(
             tuple(
                 AgglomerativeClustering(
@@ -56,8 +59,8 @@ class UniquenessCalculator:
         self,
         X: np.ndarray,
         metric: (
-            UniquenessMetric | UniquenessMetricName
-        ) = UniquenessMetricName.SUM_OF_CONNECTIONS,
+            UniquenessMetric | ClusteringUniquenessMetricName
+        ) = ClusteringUniquenessMetricName.SUM_OF_CONNECTIONS,
     ) -> np.ndarray:
         uniqueness_score = self._get_uniqueness_score(X)
         if isinstance(metric, UniquenessMetric):

@@ -5,11 +5,11 @@ from abc import abstractmethod
 
 import numpy as np
 
-from src.uniqueness_metrics.uniqueness_metric_name import UniquenessMetricName
+from .uniqueness_metric_name import DistanceUniquenessMetricName
 
 
-class UniquenessMetric(ABC):
-    type: UniquenessMetricName
+class DistanceUniquenessMetric(ABC):
+    type: DistanceUniquenessMetricName
 
     @classmethod
     @abstractmethod
@@ -18,12 +18,12 @@ class UniquenessMetric(ABC):
 
     @staticmethod
     def pick_and_apply(
-        type: UniquenessMetricName | str, clusters: np.ndarray
+        type: DistanceUniquenessMetricName | str, clusters: np.ndarray
     ) -> np.ndarray:
-        for class_ in UniquenessMetric.__subclasses__():
+        for class_ in DistanceUniquenessMetric.__subclasses__():
             if class_.is_valid(type):
                 return class_().apply(clusters)
 
     @classmethod
-    def is_valid(cls, type: UniquenessMetricName | str) -> bool:
+    def is_valid(cls, type: DistanceUniquenessMetricName | str) -> bool:
         return cls.type == type

@@ -1,21 +1,28 @@
 from __future__ import annotations
 
 import os
+from itertools import islice
 
 from dotenv import load_dotenv
 
 from src.arxiv_searcher import search_arxiv
 from src.Config import Config
 from src.embedding_holder import EmbeddingHolder
-from src.pdf_reader import from_arxiv
+from src.pdf_reader import title_from_arxiv
 from src.topics import Topic
-from src.uniqueness_calculator import UniquenessCalculator
-from src.uniqueness_metrics.sum_of_connections_metric import (
-    SumOfConnectionsMetric,
+from src.uniqueness_calculators.clustering_uniqueness_calculator.calculator import (  # noqa: E501
+    ClusteringUniquenessCalculator,
+)
+from src.uniqueness_calculators.clustering_uniqueness_calculator.uniqueness_metrics.longest_sole_in_node_metric import (  # noqa: E501
+    LongestSoleInNodeMetric,
+)
+from src.uniqueness_calculators.distance_uniqueness_calculator.calculator import (  # noqa: E501
+    DistanceUniquenessCalculator,
+)
+from src.uniqueness_calculators.distance_uniqueness_calculator.uniqueness_metrics.distance import (  # noqa: E501
+    DistanceMetric,
 )
 
-# from src.uniqueness_metrics.longest_sole_in_node_metric import \
-#     LongestSoleInNodeMetric
 
 load_dotenv()
 db_name = os.getenv("POSTGRES_DB")
@@ -29,28 +36,39 @@ db_url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
 def main():
     topic = Topic.REINFORCEMENT_LEARNING
     vector_db = EmbeddingHolder(
-        collection=topic.replace(" ", "_"), db_url=db_url
+        collection=f'{topic.replace(" ", "_")}_title', db_url=db_url
     )
     vector_db.create()
     vector_db.insert(
         map(
-            from_arxiv,
+            title_from_arxiv,
             search_arxiv(topic, max_results=Config.n_checked_articles),
         )
     )
 
-    ids, embeddings = vector_db.get_embeddings()
-    uniqueness_rank = UniquenessCalculator().rank_uniqueness(
-        embeddings, metric=SumOfConnectionsMetric(20)
-    )
-    sorted_by_uniqueness = tuple(map(ids.__getitem__, uniqueness_rank))
-    print(
-        "Most unique articles",
-        sorted_by_uniqueness[: Config.displayed_n_articles],
+    print("Calculating clusterization")
+    ids, names, embeddings = vector_db.get_embeddings()
+    uniqueness_rank = DistanceUniquenessCalculator().rank_uniqueness(
+        embeddings, metric=DistanceMetric(0.1)
     )
     print(
         "Most common articles",
-        tuple(reversed(sorted_by_uniqueness))[: Config.displayed_n_articles],
+        {
+            ids[index]: names[index]
+            for index in islice(
+                reversed(uniqueness_rank), Config.displayed_n_articles
+            )
+        },
+    )
+    uniqueness_rank = ClusteringUniquenessCalculator().rank_uniqueness(
+        embeddings, metric=LongestSoleInNodeMetric()
+    )
+    print(
+        "Most unique articles",
+        {
+            ids[index]: names[index]
+            for index in uniqueness_rank[: Config.displayed_n_articles]
+        },
     )
 
 
