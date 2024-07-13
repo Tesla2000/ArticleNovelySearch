@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "ArticleNoveltySearch"
+version = "0.1.0"
+description = ""
+authors = ["Tesla2000 <fratajczak124@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pre-commit = "^3.7.1"
+dynamic-executor = "^1.2.6"
+python-dotenv = "^1.0.1"
+flake8 = "^7.0.0"
+phidata = "^2.4.25"
+sqlalchemy = "^2.0.31"
+pgvector = "^0.3.1"
+psycopg = "^3.2.1"
+openai = "^1.35.13"
+pypdf = "^4.2.0"
+requests = "^2.32.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
