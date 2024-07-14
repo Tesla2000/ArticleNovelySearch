@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import threading
 from hashlib import md5
 from itertools import batched
@@ -9,26 +10,42 @@ from typing import Iterable
 
 import numpy as np
 from more_itertools import unzip
+from pgvector.sqlalchemy import Vector
 from phi.document import Document
 from phi.utils.log import logger
 from phi.vectordb.pgvector.pgvector2 import PgVector2
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.schema import Column
+from sqlalchemy.schema import Table
 from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import text
+from sqlalchemy.types import DateTime
+from sqlalchemy.types import Integer
+from sqlalchemy.types import String
 from tqdm import tqdm
+
+from src.Config import Config
 
 
 class EmbeddingHolder(PgVector2):
-    def get_embeddings(self) -> tuple[list[str], list[str], np.ndarray]:
+    def get_embeddings(
+        self, limit: int = sys.maxsize
+    ) -> tuple[np.ndarray, list[dict[str, str]]]:
         with self.Session() as sess:
             with sess.begin():
-                stmt = select(
-                    self.table.c.id, self.table.c.name, self.table.c.embedding
-                ).select_from(self.table)
-                ids, names, embeddings = unzip(sess.execute(stmt).fetchall())
-                return list(ids), list(names), np.array(tuple(embeddings))
+                stmt = (
+                    select(self.table.c.embedding, self.table.c.meta_data)
+                    .select_from(self.table)
+                    .order_by(self.table.c.id)
+                    .limit(limit)
+                )
+                embeddings, metadata = unzip(sess.execute(stmt).fetchall())
+                return np.array(tuple(embeddings)), list(metadata)
 
     def insert(
-        self, documents: Iterable[Document], batch_size: int = 10
+        self,
+        documents: Iterable[Document],
+        batch_size: int = Config.batch_size,
     ) -> None:
         try:
             documents = self.filter_documents(documents)
@@ -57,9 +74,7 @@ class EmbeddingHolder(PgVector2):
         document.embed(embedder=self.embedder)
         cleaned_content = document.content.replace("\x00", "\ufffd")
         content_hash = md5(cleaned_content.encode()).hexdigest()
-        _id = document.id or content_hash
         stmt = postgresql.insert(self.table).values(
-            id=_id,
             name=document.name,
             meta_data=document.meta_data,
             content=cleaned_content,
@@ -79,3 +94,29 @@ class EmbeddingHolder(PgVector2):
                 database_ids = {row[0] for row in result}
 
         return (doc for doc in documents if doc.id not in database_ids)
+
+    def get_table(self) -> Table:
+        return Table(
+            self.collection,
+            self.metadata,
+            Column("id", Integer, primary_key=True, autoincrement=True),
+            Column("name", String),
+            Column(
+                "meta_data",
+                postgresql.JSONB,
+                server_default=text("'{}'::jsonb"),
+            ),
+            Column("content", postgresql.TEXT),
+            Column("embedding", Vector(self.dimensions)),
+            Column("usage", postgresql.JSONB),
+            Column(
+                "created_at",
+                DateTime(timezone=True),
+                server_default=text("now()"),
+            ),
+            Column(
+                "updated_at", DateTime(timezone=True), onupdate=text("now()")
+            ),
+            Column("content_hash", String),
+            extend_existing=True,
+        )

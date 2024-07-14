@@ -10,6 +10,7 @@ load_dotenv()
 class Config:
     n_checked_articles = 1000
     displayed_n_articles = 10
+    batch_size = 10
     root = Path(__file__).parent
     caches = root / "caches"
     hierarchical_caches = caches / "hierarchical"
