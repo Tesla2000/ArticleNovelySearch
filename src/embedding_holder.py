@@ -25,7 +25,6 @@ from sqlalchemy.types import Integer
 from sqlalchemy.types import String
 from tqdm import tqdm
 
-from src.Config import Config
 from src.embedders.embedder import Embedder
 
 
@@ -60,7 +59,7 @@ class EmbeddingHolder(PgVector2):
     def insert(
         self,
         documents: Iterable[Document],
-        batch_size: int = Config.batch_size,
+        batch_size: int = 10,
     ) -> None:
         documents = self.filter_documents(documents)
         with self.Session() as sess:
