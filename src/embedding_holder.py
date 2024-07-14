@@ -7,6 +7,7 @@ from itertools import batched
 from typing import Any
 from typing import Generator
 from typing import Iterable
+from typing import Optional
 
 import numpy as np
 from more_itertools import unzip
@@ -25,21 +26,35 @@ from sqlalchemy.types import String
 from tqdm import tqdm
 
 from src.Config import Config
+from src.embedders.embedder import Embedder
 
 
 class EmbeddingHolder(PgVector2):
     def get_embeddings(
-        self, limit: int = sys.maxsize
+        self,
+        limit: int = sys.maxsize,
+        embedder: Optional[Embedder] = None,
     ) -> tuple[np.ndarray, list[dict[str, str]]]:
         with self.Session() as sess:
             with sess.begin():
                 stmt = (
-                    select(self.table.c.embedding, self.table.c.meta_data)
+                    select(
+                        (
+                            self.table.c.embedding
+                            if embedder is None
+                            else self.table.c.content
+                        ),
+                        self.table.c.meta_data,
+                    )
                     .select_from(self.table)
                     .order_by(self.table.c.id)
                     .limit(limit)
                 )
-                embeddings, metadata = unzip(sess.execute(stmt).fetchall())
+                if embedder is None:
+                    embeddings, metadata = unzip(sess.execute(stmt).fetchall())
+                else:
+                    content, metadata = unzip(sess.execute(stmt).fetchall())
+                    embeddings = embedder.get_embeddings(tuple(content))
                 return np.array(tuple(embeddings)), list(metadata)
 
     def insert(
@@ -47,28 +62,24 @@ class EmbeddingHolder(PgVector2):
         documents: Iterable[Document],
         batch_size: int = Config.batch_size,
     ) -> None:
-        try:
-            documents = self.filter_documents(documents)
-            with self.Session() as sess:
-                for batch in tqdm(
-                    batched(documents, batch_size), "Searching articles..."
-                ):
-                    threads = tuple(
-                        threading.Thread(
-                            target=self._insert, args=(document, sess)
-                        )
-                        for document in batch
+        documents = self.filter_documents(documents)
+        with self.Session() as sess:
+            for batch in tqdm(
+                batched(documents, batch_size), "Searching articles..."
+            ):
+                threads = tuple(
+                    threading.Thread(
+                        target=self._insert, args=(document, sess)
                     )
-                    for thread in threads:
-                        thread.start()
-                    for thread in threads:
-                        thread.join()
+                    for document in batch
+                )
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
 
-                    sess.commit()
-        except Exception as e:
-            logger.info(f"Unexpected error occurred {e}")
-        finally:
-            logger.info("Done searching")
+                sess.commit()
+        logger.info("Done searching")
 
     def _insert(self, document: Document, sess):
         document.embed(embedder=self.embedder)
@@ -89,11 +100,15 @@ class EmbeddingHolder(PgVector2):
     ) -> Generator[Document, Any, None]:
         with self.Session() as sess:
             with sess.begin():
-                stmt = select(self.table.c.id)
+                stmt = select(self.table.c.meta_data)
                 result = sess.execute(stmt).all()
-                database_ids = {row[0] for row in result}
+                database_meta_data = {row[0]["id"] for row in result}
 
-        return (doc for doc in documents if doc.id not in database_ids)
+        return (
+            doc
+            for doc in documents
+            if doc.meta_data["id"] not in database_meta_data
+        )
 
     def get_table(self) -> Table:
         return Table(

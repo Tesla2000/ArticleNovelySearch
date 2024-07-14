@@ -15,6 +15,10 @@ class Config:
     caches = root / "caches"
     hierarchical_caches = caches / "hierarchical"
     cosine_caches = caches / "cosine"
+    embeddings_caches = caches / "embeddings"
+    compared_article_title = "Using Beam Search to master Splendor game"
+    # compared_article_title = ""
+    n_most_similar = 5
 
 
 for variable in dir(Config):

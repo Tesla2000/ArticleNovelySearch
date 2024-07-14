@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from .uniqueness_metric import UniquenessMetric
+from .uniqueness_metric import ClusteringUniquenessMetric
 from .uniqueness_metric_name import ClusteringUniquenessMetricName
 
 
-class LongestSoleInNodeMetric(UniquenessMetric):
+class LongestSoleInNodeMetric(ClusteringUniquenessMetric):
     """Very good for finding niche subjects in a small number"""
 
     type: ClusteringUniquenessMetricName = (

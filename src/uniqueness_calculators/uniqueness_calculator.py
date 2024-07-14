@@ -1,27 +1,29 @@
 from __future__ import annotations
 
-import hashlib
 from abc import abstractmethod
+from typing import Optional
 
 import numpy as np
-from numpy import load
-from numpy import save
-from sklearn.metrics.pairwise import cosine_similarity
 
-from src.Config import Config
+from src.similarity_calculators.cosine_similarity_calculator import (
+    CosineSimilarityCalculator,
+)
+from src.similarity_calculators.similarity_calculator import (
+    SimilarityCalculator,
+)
 from src.uniqueness_calculators.uniqueness_metric import UniquenessMetric
 
 
 class UniquenessCalculator:
-    def _get_cosine_similarity(self, X: np.ndarray) -> np.ndarray:
-        X.flags.writeable = False
-        hash_value = hashlib.sha1(X.data.tobytes()).hexdigest()
-        path = Config.cosine_caches.joinpath(hash_value).with_suffix(".npy")
-        if path.exists():
-            return load(path)
-        pairwise_cosine = cosine_similarity(X)
-        save(path, pairwise_cosine)
-        return pairwise_cosine
+    pairwise_similarity: np.ndarray
+
+    def __init__(
+        self, similarity_calculator: Optional[SimilarityCalculator] = None
+    ):
+        similarity_calculator = (
+            similarity_calculator or CosineSimilarityCalculator()
+        )
+        self.similarity_calculator = similarity_calculator
 
     @abstractmethod
     def _get_uniqueness_score(self, X: np.ndarray) -> np.ndarray:

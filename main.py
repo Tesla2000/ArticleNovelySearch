@@ -3,10 +3,13 @@ from __future__ import annotations
 import os
 from itertools import islice
 
+import numpy as np
 from dotenv import load_dotenv
 
+from src.arxiv_searcher import search_arxiv
 from src.Config import Config
 from src.embedding_holder import EmbeddingHolder
+from src.pdf_reader import title_from_arxiv
 from src.topics import Topic
 from src.uniqueness_calculators.clustering_uniqueness_calculator.calculator import (  # noqa: E501
     ClusteringUniquenessCalculator,
@@ -31,25 +34,25 @@ db_url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
 
 
 def main():
-    topic = Topic.LARGE_LEARNING_MODELS
-    title = "_title"
+    topic = Topic.REINFORCEMENT_LEARNING
     vector_db = EmbeddingHolder(
-        collection=f'{topic.replace(" ", "_")}{title}', db_url=db_url
+        collection=topic.replace(" ", "_"), db_url=db_url
     )
-    # vector_db.create()
-    # vector_db.insert(
-    #     map(
-    #         title_from_arxiv if title == "_title" else content_from_arxiv,
-    #         search_arxiv(topic, max_results=Config.n_checked_articles),
-    #     )
-    # )
-
-    print("Calculating clusterization")
+    vector_db.create()
+    if vector_db.get_count() < Config.n_checked_articles:
+        vector_db.insert(
+            map(
+                title_from_arxiv,
+                search_arxiv(topic, max_results=Config.n_checked_articles),
+            )
+        )
     embeddings, metadata = vector_db.get_embeddings(
         limit=Config.n_checked_articles
     )
-    print(f"The least relevant article is {metadata[-1]}")
-    uniqueness_rank = DistanceUniquenessCalculator().rank_uniqueness(
+    least_relevant_title = metadata[-1]["title"]
+    print(f"The least relevant article is {least_relevant_title}")
+    distance_uniqueness_calculator = DistanceUniquenessCalculator()
+    uniqueness_rank = distance_uniqueness_calculator.rank_uniqueness(
         embeddings, metric=DistanceMetric()
     )
     print(
@@ -61,7 +64,8 @@ def main():
             )
         ),
     )
-    uniqueness_rank = ClusteringUniquenessCalculator().rank_uniqueness(
+    clustering_uniqueness_calculator = ClusteringUniquenessCalculator()
+    uniqueness_rank = clustering_uniqueness_calculator.rank_uniqueness(
         embeddings, metric=LongestSoleInNodeMetric()
     )
     print(
@@ -73,6 +77,28 @@ def main():
             )
         ),
     )
+    if Config.compared_article_title:
+        embeddings = np.append(
+            embeddings,
+            np.array([
+                vector_db.embedder.get_embedding(Config.compared_article_title)
+            ]),
+            axis=0,
+        )
+        uniqueness_rank = clustering_uniqueness_calculator.rank_uniqueness(
+            embeddings, metric=LongestSoleInNodeMetric()
+        )
+        highest_similarities = np.argsort(
+            clustering_uniqueness_calculator.pairwise_similarity[-1]
+        )[
+            -Config.n_most_similar - 1 : -1  # noqa: E203
+        ]
+        similar = list(map(metadata.__getitem__, highest_similarities))
+        print(
+            f'"{Config.compared_article_title}" ranked as '
+            f"{np.argmax(uniqueness_rank)} the most "
+            f"similar articles are {similar}"
+        )
 
 
 if __name__ == "__main__":
