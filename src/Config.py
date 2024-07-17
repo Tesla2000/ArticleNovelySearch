@@ -32,10 +32,10 @@ class Config(BaseModel):
     hierarchical_caches: Path = _caches / "hierarchical"
     cosine_caches: Path = _caches / "cosine"
     embeddings_caches: Path = _caches / "embeddings"
-    db_url: str = (
+    db_url: str = os.getenv("DATABASE_URL") or (
         f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
     )
-    n_checked_articles: int = 1000
+    n_checked_articles: int = 100
     displayed_n_articles: int = 10
     batch_size: int = 10
     compared_article_title: str = ""

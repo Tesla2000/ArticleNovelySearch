@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from itertools import islice
 
 import numpy as np
@@ -32,7 +33,10 @@ def main():
         most_common_articles = _get_most_common(
             config, embeddings, metadata, distance_uniqueness_calculator
         )
-        print(f"Most common articles {most_common_articles}")
+        print(
+            "Most common articles"
+            f" {json.dumps(most_common_articles, indent=2)}"
+        )
 
     if config.calc_uniqueness:
         clustering_uniqueness_calculator = UniquenessCalculator.create(
@@ -41,7 +45,10 @@ def main():
         most_unique_articles = _get_most_unique(
             config, embeddings, metadata, clustering_uniqueness_calculator
         )
-        print(f"Most unique articles {most_unique_articles}")
+        print(
+            "Most unique articles "
+            f"{json.dumps(most_unique_articles, indent=2)}"
+        )
 
     if config.compared_article_title:
         clustering_uniqueness_calculator = UniquenessCalculator.create(
