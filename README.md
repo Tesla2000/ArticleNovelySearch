@@ -5,8 +5,11 @@ The script checks title or arxiv articles on the specific subject and shows the 
 python main.py --compared_article_title "Beam Search Splendor Game AI implementation" --topic "Reinforcement learning"
 ```
 
-```shell
+```
 The least relevant article is Proximal Policy Optimization with Adaptive Exploration
+```
+
+```
 Most common articles [
   {
     "id": "http://arxiv.org/pdf/1810.06339v1",
@@ -49,6 +52,8 @@ Most common articles [
     "title": "Multi-Objective Deep Reinforcement Learning"
   }
 ]
+```
+```
 Most unique articles [
   {
     "id": "http://arxiv.org/pdf/1812.04181v1",
@@ -91,6 +96,8 @@ Most unique articles [
     "title": "Universal Policies to Learn Them All"
   }
 ]
+```
+```
 "Beam Search Splendor Game AI implementation" ranked as 3. The most similar articles are [
   {
     "id": "http://arxiv.org/pdf/2302.08969v1",
