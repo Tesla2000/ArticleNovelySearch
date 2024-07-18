@@ -35,12 +35,12 @@ class Config(BaseModel):
     db_url: str = os.getenv("DATABASE_URL") or (
         f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
     )
-    n_checked_articles: int = 100
+    n_checked_articles: int = 1000
     displayed_n_articles: int = 10
     batch_size: int = 10
     compared_article_title: str = ""
     n_most_similar: int = 5
-    topic: str = "Reinforcement learning"
+    topic: str = ""
 
     calc_uniqueness: bool = True
     uniqueness_calculator_type: str = UniquenessCalculatorName.CLUSTERING.value

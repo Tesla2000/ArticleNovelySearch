@@ -19,6 +19,8 @@ from src.uniqueness_calculators.uniqueness_calculator import (
 def main():
     args = parse_arguments(Config)
     config = create_config_with_args(Config, args)
+    if not config.topic:
+        raise ValueError("Topic must be provided")
     vector_db = EmbeddingHolder(
         collection=config.topic.lower().replace(" ", "_"), db_url=config.db_url
     )
@@ -148,8 +150,8 @@ def _print_uniqueness(
     similar = list(map(metadata.__getitem__, highest_similarities))
     print(
         f'"{config.compared_article_title}" ranked as '
-        f"{np.argmax(uniqueness_rank)} the most "
-        f"similar articles are {similar}"
+        f"{np.argmax(uniqueness_rank)}. The most "
+        f"similar articles are {json.dumps(similar, indent=2)}"
     )
 
 
