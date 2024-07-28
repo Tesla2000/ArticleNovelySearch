@@ -16,6 +16,11 @@ repos:
     hooks:
       - id: autoflake
         args: [ --remove-all-unused-imports, --in-place ]
+  - repo: https://github.com/Tesla2000/suppress-lenght-check-import
+    rev: '0.1.0'
+    hooks:
+      - id: add-noqa-to-import
+        stages: [commit,push]
   - repo: https://github.com/pycqa/flake8
     rev: '7.0.0'
     hooks:

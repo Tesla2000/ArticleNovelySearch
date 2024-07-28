@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 
 from src._custom_argument_parser import CustomArgumentParser
-from src.uniqueness_calculators.clustering_uniqueness_calculator.uniqueness_metrics.uniqueness_metric_name import (  # noqa: E501
+from src.uniqueness_calculators.clustering_uniqueness_calculator.uniqueness_metrics.uniqueness_metric_name import (
     ClusteringUniquenessMetricName,
 )
-from src.uniqueness_calculators.distance_uniqueness_calculator.uniqueness_metrics.uniqueness_metric_name import (  # noqa: E501
+from src.uniqueness_calculators.distance_uniqueness_calculator.uniqueness_metrics.uniqueness_metric_name import (
     DistanceUniquenessMetricName,
 )
 from src.uniqueness_calculators.uniqueness_calculator_name import (
