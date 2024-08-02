@@ -4,3 +4,4 @@
 /.env
 /.venv
 /src/caches/
+/.project_doc_record/
