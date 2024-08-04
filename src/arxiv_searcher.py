@@ -13,6 +13,7 @@ def search_arxiv(
     sort_by: arxiv.SortCriterion = arxiv.SortCriterion.Relevance,
     sort_order: arxiv.SortOrder = arxiv.SortOrder.Descending,
 ) -> Generator[arxiv.Result, None, None]:
+    print("log if it got here")
     id_list = id_list or []
     client = arxiv.Client()
 
