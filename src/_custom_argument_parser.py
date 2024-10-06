@@ -9,6 +9,11 @@ class CustomArgumentParser(argparse.ArgumentParser):
         *args,
         **kwargs,
     ):
+        """
+        Adds an argument to the parser, converting boolean types to a custom
+        string-to-boolean function.
+        :return: None
+        """
         if kwargs.get("type") is bool:
             kwargs["type"] = self._str2bool
         super().add_argument(
@@ -17,6 +22,11 @@ class CustomArgumentParser(argparse.ArgumentParser):
         )
 
     def _str2bool(self, v):
+        """
+        Converts a string representation of a boolean value to a boolean type.
+        :param v: The input value to be converted to a boolean.
+        :return: True or False based on the input string.
+        """
         if isinstance(v, bool):
             return v
         if v.lower() in ("yes", "true", "t", "y", "1"):

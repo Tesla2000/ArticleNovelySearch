@@ -18,6 +18,13 @@ class CosineSimilarityCalculator(SimilarityCalculator):
     def calculate_similarity(
         self, embeddings: np.ndarray, config: "Config"
     ) -> np.ndarray:
+        """
+        Calculates the cosine similarity between given embeddings and caches
+        the result for future use.
+        :param config: Configuration object containing cache path settings.
+        :param embeddings: Numpy array of embeddings to compute similarity for.
+        :return: Pairwise cosine similarity matrix
+        """
         embeddings.flags.writeable = False
         hash_value = hashlib.sha1(embeddings.data.tobytes()).hexdigest()
         path = config.cosine_caches.joinpath(hash_value).with_suffix(".npy")

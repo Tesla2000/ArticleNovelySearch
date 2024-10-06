@@ -56,6 +56,12 @@ class Config(BaseModel):
 
 
 def parse_arguments(config_class: Type[Config]):
+    """
+    Parses command-line arguments based on the fields defined in the provided
+    configuration class.
+    :param config_class: A class containing model fields for configuration.
+    :return: Parsed command-line arguments.
+    """
     parser = CustomArgumentParser(
         description="Configure the application settings."
     )
@@ -74,6 +80,14 @@ def parse_arguments(config_class: Type[Config]):
 
 
 def create_config_with_args(config_class: Type[Config], args) -> Config:
+    """
+    Creates a configuration object from a specified class and arguments,
+    ensuring that any directory paths are created if they do not exist.
+    :param config_class: The class type of the configuration to be created.
+    :param args: An object containing the arguments to initialize the
+    configuration.
+    :return: A configuration object of type Config.
+    """
     config = config_class(
         **{name: getattr(args, name) for name in config_class.model_fields}
     )

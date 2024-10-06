@@ -5,6 +5,12 @@ from pathlib import Path
 
 
 def import_python(root: Path):
+    """
+    Imports Python modules from a specified directory and its subdirectories,
+    yielding the names of the imported modules.
+    :param root: The root directory from which to import Python modules.
+    :return: Names of imported modules
+    """
     for module_path in root.iterdir():
         if module_path.name in ("__init__.py", "pycache", "__pycache__"):
             continue

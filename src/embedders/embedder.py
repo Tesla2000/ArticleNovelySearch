@@ -17,4 +17,12 @@ class Embedder(BaseModel):
     def get_embeddings(
         self, text: Sequence[str], config: "Config"
     ) -> np.ndarray:
+        """
+        Retrieves embeddings for a given sequence of text using a specified
+        configuration.
+        :param config: Configuration settings for the embedding process.
+        :param text: A sequence of strings for which embeddings are to be
+        generated.
+        :return: An array of embeddings for the input text.
+        """
         raise NotImplementedError

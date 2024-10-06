@@ -17,6 +17,12 @@ from src.uniqueness_calculators.uniqueness_calculator import (
 
 
 def main():
+    """
+    The main function orchestrates the processing of articles based on
+    user-defined configurations, calculating and displaying the least relevant,
+    most common, and most unique articles.
+    :return: None
+    """
     args = parse_arguments(Config)
     config = create_config_with_args(Config, args)
     if not config.topic:
@@ -68,6 +74,16 @@ def main():
 def _get_embeddings(
     config: Config, vector_db: EmbeddingHolder
 ) -> tuple[np.ndarray, list[dict[str, str]]]:
+    """
+    Fetches embeddings from a vector database based on a specified
+    configuration and topic.
+    :param config: Configuration object containing parameters like topic and
+    number of articles to check.
+    :param vector_db: An instance of EmbeddingHolder that manages the
+    embeddings and their storage.
+    :return: A tuple containing an array of embeddings and a list of metadata
+    dictionaries.
+    """
     vector_db.create()
     if vector_db.get_count() < config.n_checked_articles:
         vector_db.insert(
@@ -88,6 +104,17 @@ def _get_most_common(
     metadata: list[dict[str, str]],
     uniqueness_calculator: UniquenessCalculator,
 ) -> list[dict[str, str]]:
+    """
+    Retrieves the most common articles based on their uniqueness ranking and
+    specified configuration settings.
+    :param config: Configuration settings for determining commonness and
+    display parameters.
+    :param metadata: List of metadata dictionaries corresponding to articles.
+    :param uniqueness_calculator: Calculator used to rank the uniqueness of
+    articles based on embeddings.
+    :param embeddings: Array of embeddings representing articles.
+    :return: List of metadata dictionaries for common articles.
+    """
     uniqueness_rank = uniqueness_calculator.rank_uniqueness(
         embeddings,
         config.commonness_metric_name,
@@ -108,6 +135,16 @@ def _get_most_unique(
     metadata: list[dict[str, str]],
     uniqueness_calculator: UniquenessCalculator,
 ) -> list[dict[str, str]]:
+    """
+    Retrieves the most unique articles based on their embeddings and a
+    uniqueness metric.
+    :param config: Configuration settings for uniqueness calculation.
+    :param metadata: List of article metadata dictionaries.
+    :param uniqueness_calculator: Calculator for determining the uniqueness of
+    articles based on embeddings.
+    :param embeddings: Array of article embeddings.
+    :return: List of unique article metadata.
+    """
     uniqueness_rank = uniqueness_calculator.rank_uniqueness(
         embeddings,
         config.uniqueness_metric_name,
@@ -129,6 +166,20 @@ def _print_uniqueness(
     uniqueness_calculator: UniquenessCalculator,
     metadata: list[dict[str, str]],
 ):
+    """
+    Prints the uniqueness ranking of a given article compared to others based
+    on embeddings and a uniqueness calculator.
+    :param config: An instance of Config containing configuration parameters
+    for the uniqueness calculation.
+    :param embeddings: A NumPy array of embeddings for the articles.
+    :param uniqueness_calculator: An instance of UniquenessCalculator used to
+    compute uniqueness rankings.
+    :param vector_db: An instance of EmbeddingHolder that provides embeddings
+    for articles.
+    :param metadata: A list of dictionaries containing metadata for the
+    articles being compared.
+    :return: None
+    """
     embeddings = np.append(
         embeddings,
         np.array(

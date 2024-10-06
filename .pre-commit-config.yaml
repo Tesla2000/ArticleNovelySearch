@@ -16,13 +16,18 @@ repos:
     hooks:
       - id: autoflake
         args: [ --remove-all-unused-imports, --in-place ]
-  - repo: https://github.com/Tesla2000/add-noqa-to-import
-    rev: '0.1.1'
-    hooks:
-      - id: add-noqa-to-import
-        stages: [commit,push]
   - repo: https://github.com/pycqa/flake8
     rev: '7.0.0'
     hooks:
       - id: flake8
         stages: [commit,push]
+  - repo: https://github.com/Tesla2000/add-noqa-to-import
+    rev: '0.1.1'
+    hooks:
+      - id: add-noqa-to-import
+        stages: [commit,push]
+  - repo: https://github.com/Tesla2000/AutodocRemote
+    rev: '0.2.2'
+    hooks:
+      - id: autodocremote
+        stages: [push]

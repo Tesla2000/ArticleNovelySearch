@@ -22,6 +22,15 @@ class ClusteringUniquenessCalculator(UniquenessCalculator):
     uniqueness_metric_scope = ClusteringUniquenessMetric
 
     def _cluster(self, X: np.ndarray, config: "Config") -> np.ndarray:
+        """
+        Clusters the input data using agglomerative clustering based on
+        pairwise similarity calculated from the input data and configuration
+        settings.
+        :param X: A 2D numpy array containing the data points to be clustered.
+        :param config: An instance of the Config class containing configuration
+        settings for clustering.
+        :return: An array of cluster labels for each number of clusters.
+        """
         self.pairwise_similarity = (
             self.similarity_calculator.calculate_similarity(X, config)
         )
@@ -43,6 +52,15 @@ class ClusteringUniquenessCalculator(UniquenessCalculator):
     def _get_uniqueness_score(
         self, X: np.ndarray, config: Config
     ) -> np.ndarray:
+        """
+        Calculates the uniqueness score for clusters derived from the input
+        data based on the provided configuration.
+        :param X: A NumPy array representing the input data points to be
+        clustered.
+        :param config: An instance of Config containing parameters for
+        clustering.
+        :return: An array of uniqueness scores for each cluster.
+        """
         clusters = self._cluster(X, config)
         uniqueness_score = np.empty_like(clusters)
         for n_clusters, row in enumerate(clusters, 2):

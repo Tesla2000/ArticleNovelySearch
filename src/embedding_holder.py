@@ -34,6 +34,16 @@ class EmbeddingHolder(PgVector2):
         limit: int = sys.maxsize,
         embedder: Optional[Embedder] = None,
     ) -> tuple[np.ndarray, list[dict[str, str]]]:
+        """
+        Fetches embeddings and associated metadata from the database,
+        optionally using a specified embedder to generate embeddings from
+        content.
+        :param embedder: An optional embedder used to generate embeddings from
+        content if provided.
+        :param limit: The maximum number of records to retrieve from the
+        database.
+        :return: A tuple of embeddings and metadata
+        """
         with self.Session() as sess:
             with sess.begin():
                 stmt = (
@@ -61,6 +71,14 @@ class EmbeddingHolder(PgVector2):
         documents: Iterable[Document],
         batch_size: int = 10,
     ) -> None:
+        """
+        Inserts a batch of documents into the database using multithreading for
+        efficiency.
+        :param documents: An iterable collection of Document objects to be
+        inserted.
+        :param batch_size: The number of documents to process in each batch.
+        :return: None
+        """
         documents = self.filter_documents(documents)
         with self.Session() as sess:
             for batch in tqdm(
@@ -81,6 +99,13 @@ class EmbeddingHolder(PgVector2):
         logger.info("Done searching")
 
     def _insert(self, document: Document, sess):
+        """
+        Inserts a document into the database after embedding and cleaning its
+        content.
+        :param sess: A session object used to execute database operations.
+        :param document: The Document object containing data to be inserted.
+        :return: None
+        """
         document.embed(embedder=self.embedder)
         cleaned_content = document.content.replace("\x00", "\ufffd")
         content_hash = md5(cleaned_content.encode()).hexdigest()
@@ -97,6 +122,13 @@ class EmbeddingHolder(PgVector2):
     def filter_documents(
         self, documents: Iterable[Document]
     ) -> Generator[Document, Any, None]:
+        """
+        Filters out documents that already exist in the database based on their
+        metadata ID.
+        :param documents: An iterable collection of Document objects to be
+        filtered.
+        :return: A generator of filtered documents.
+        """
         with self.Session() as sess:
             with sess.begin():
                 stmt = select(self.table.c.meta_data)
@@ -110,6 +142,12 @@ class EmbeddingHolder(PgVector2):
         )
 
     def get_table(self) -> Table:
+        """
+        Creates and returns a SQLAlchemy Table object representing the
+        structure of the database table for storing embeddings and related
+        metadata.
+        :return: SQLAlchemy Table object
+        """
         return Table(
             self.collection,
             self.metadata,
